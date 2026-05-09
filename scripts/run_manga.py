@@ -2,10 +2,10 @@ from pathlib import Path
 import sys
 import yaml
 
-# === chemins projet ===
-CURRENT_FILE = Path(__file__).resolve()
-PROJECT_ROOT = CURRENT_FILE.parents[1]
+# Racine du projet : repo/
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SRC_DIR = PROJECT_ROOT / "src"
+
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
@@ -18,11 +18,6 @@ SUMMARY_SEPARATOR = "=" * 50
 CONFIG_DIR = PROJECT_ROOT / "config"
 DATA_DIR = PROJECT_ROOT / "data"
 DATA_FILE_PATH = DATA_DIR / "manga" / "manga_series.yaml"
-
-lelmanga_cfg = CONFIG_DIR / "sites" / "manga" / "lelmanga.yaml"
-scan_manga_cfg = CONFIG_DIR / "sites" / "scans" / "scan-manga.yaml"
-fmteam_cfg = CONFIG_DIR / "sites" / "manga" / "fmteam.yaml"
-raijin_cfg = CONFIG_DIR / "sites" / "manhwa" / "raijin.yaml"
 
 def safe(value) -> str:
     return "-" if value is None else str(value)
