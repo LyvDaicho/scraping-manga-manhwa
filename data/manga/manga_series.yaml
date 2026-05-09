@@ -2,7 +2,7 @@ series:
 - id: one-piece
   title: One Piece
   type: manga
-  last_chapter: '1181'
+  last_chapter: '1182'
   last_update: '2026-05-07'
   status: en_cours
 - id: sakamoto-days
@@ -46,7 +46,7 @@ series:
 - id: eleceed
   title: Eleceed
   type: manhwa
-  last_chapter: '391'
+  last_chapter: '395'
   last_update: '2026-05-07'
   status: en_cours
 - id: centuria
