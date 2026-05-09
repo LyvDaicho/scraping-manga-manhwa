@@ -9,7 +9,6 @@ SRC_DIR = PROJECT_ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from src.tracker.services.manga_orchestrator import run_manga_update
 from src.tracker.notifiers.discord_webhook import send_discord_notification
 
 SEPARATOR = "-" * 50
