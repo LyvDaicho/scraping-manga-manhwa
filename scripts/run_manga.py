@@ -9,6 +9,9 @@ SRC_DIR = PROJECT_ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
+from tracker.services.manga_orchestrator import run_manga_update
+from tracker.notifiers.discord_webhook import send_discord_notification
+
 SEPARATOR = "-" * 50
 SUMMARY_SEPARATOR = "=" * 50
 
@@ -16,8 +19,10 @@ CONFIG_DIR = PROJECT_ROOT / "config"
 DATA_DIR = PROJECT_ROOT / "data"
 DATA_FILE_PATH = DATA_DIR / "manga" / "manga_series.yaml"
 
+
 def safe(value) -> str:
     return "-" if value is None else str(value)
+
 
 def print_result(result) -> None:
     print(SEPARATOR)
@@ -35,6 +40,7 @@ def print_result(result) -> None:
             site=result.site or "-",
         )
 
+
 def print_summary(results: list) -> None:
     total = len(results)
     updated = sum(1 for r in results if r.status == "updated")
@@ -48,12 +54,14 @@ def print_summary(results: list) -> None:
     print(f"Unchanged : {unchanged}")
     print(f"Failed : {failed}")
 
+
 def load_titles(data_file_path: Path) -> list[str]:
     with data_file_path.open("r", encoding="utf-8") as file:
         data = yaml.safe_load(file) or {}
 
     series_list = data.get("series", [])
     return [item["title"] for item in series_list if "title" in item]
+
 
 def main() -> None:
     titles = load_titles(DATA_FILE_PATH)
@@ -71,6 +79,7 @@ def main() -> None:
         print_result(result)
 
     print_summary(results)
+
 
 if __name__ == "__main__":
     main()
