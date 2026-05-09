@@ -2,11 +2,11 @@ import logging
 from pathlib import Path
 import yaml
 
-from src.tracker.models.orchestration_result import OrchestrationResult
-from src.tracker.scrapers.manga.registry import build_manga_adapter
-from src.tracker.services.http_fetcher import HttpFetcher
-from src.tracker.services.manga_update_service import update_last_chapter
-from src.tracker.utils.chapter import chapter_to_decimal
+from tracker.models.orchestration_result import OrchestrationResult
+from tracker.scrapers.manga.registry import build_manga_adapter
+from tracker.services.http_fetcher import HttpFetcher
+from tracker.services.manga_update_service import update_last_chapter
+from tracker.utils.chapter import chapter_to_decimal
 
 
 SEPARATOR = "-" * 50
