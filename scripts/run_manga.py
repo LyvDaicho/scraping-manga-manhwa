@@ -12,6 +12,7 @@ SUMMARY_SEPARATOR = "=" * 50
 CURRENT_FILE = Path(__file__).resolve()
 PROJECT_ROOT = CURRENT_FILE.parents[1] 
 DATA_FILE_PATH = PROJECT_ROOT / "data" / "manga" / "manga_series.yaml"
+CONFIG_DIR = PROJECT_ROOT / "config"
 
 lelmanga_cfg = CONFIG_DIR / "sites" / "manga" / "lelmanga.yaml"
 scan_manga_cfg = CONFIG_DIR / "sites" / "scans" / "scan-manga.yaml"
