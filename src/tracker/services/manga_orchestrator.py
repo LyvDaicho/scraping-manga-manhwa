@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+
 import yaml
 
 from tracker.models.orchestration_result import OrchestrationResult
@@ -8,85 +9,155 @@ from tracker.services.http_fetcher import HttpFetcher
 from tracker.services.manga_update_service import update_last_chapter
 from tracker.utils.chapter import chapter_to_decimal
 
+logger = logging.getLogger(__name__)
 
-SEPARATOR = "-" * 50
-SUMMARY_SEPARATOR = "=" * 50
+SOURCE_PRIORITY = {
+    "manga": ["lelmanga", "scan-manga"],
+    "manhwa": ["raijin", "scan-manga"],
+}
 
-# Racine du projet : repo/
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 CONFIG_DIR = PROJECT_ROOT / "config"
-DATA_DIR = PROJECT_ROOT / "data"
 
-# Fichier des séries
-DATA_FILE_PATH = DATA_DIR / "manga" / "manga_series.yaml"
+SITE_CONFIG_PATHS = {
+    "lelmanga": CONFIG_DIR / "sites" / "manga" / "lelmanga.yaml",
+    "fmteam": CONFIG_DIR / "sites" / "manga" / "fmteam.yaml",
+    "raijin": CONFIG_DIR / "sites" / "manhwa" / "raijin.yaml",
+    "scan-manga": CONFIG_DIR / "sites" / "scans" / "scan-manga.yaml",
+}
 
-# Fichiers de config des sites
-lelmanga_cfg = CONFIG_DIR / "sites" / "manga" / "lelmanga.yaml"
-scan_manga_cfg = CONFIG_DIR / "sites" / "scans" / "scan-manga.yaml"
-fmteam_cfg = CONFIG_DIR / "sites" / "manga" / "fmteam.yaml"
-raijin_cfg = CONFIG_DIR / "sites" / "manhwa" / "raijin.yaml"
-
-
-def safe(value) -> str:
-    return "-" if value is None else str(value)
+SCAN_MANGA_OVERRIDES_PATH = CONFIG_DIR / "overrides" / "scan-manga.yaml"
 
 
-def print_result(result) -> None:
-    print(SEPARATOR)
-    print(f"Site : {safe(result.site)}")
-    print(f"Titre : {result.title}")
-    print(f"Statut : {result.status}")
-    print(f"Dernier chapitre : {safe(result.latest_chapter)}")
-    print(f"Message : {safe(result.message)}")
+def load_site_config(site_name: str) -> dict:
+    config_path = SITE_CONFIG_PATHS.get(site_name)
+    if config_path is None:
+        raise ValueError(f"Aucun fichier de configuration défini pour le site : {site_name}")
 
-    if result.status == "updated":
-        send_discord_notification(
-            title=result.title,
-            chapters=result.latest_chapter,
-            url=result.url or "-",
-            site=result.site or "-",
-        )
+    with config_path.open("r", encoding="utf-8") as file:
+        return yaml.safe_load(file)
 
 
-def print_summary(results: list) -> None:
-    total = len(results)
-    updated = sum(1 for r in results if r.status == "updated")
-    unchanged = sum(1 for r in results if r.status == "unchanged")
-    failed = sum(1 for r in results if r.status == "failed")
+def load_scan_manga_overrides() -> dict:
+    if not SCAN_MANGA_OVERRIDES_PATH.exists():
+        return {}
 
-    print(SUMMARY_SEPARATOR)
-    print("Récapitulatif")
-    print(f"Total : {total}")
-    print(f"Updated : {updated}")
-    print(f"Unchanged : {unchanged}")
-    print(f"Failed : {failed}")
-
-
-def load_titles(data_file_path: Path) -> list[str]:
-    with data_file_path.open("r", encoding="utf-8") as file:
+    with SCAN_MANGA_OVERRIDES_PATH.open("r", encoding="utf-8") as file:
         data = yaml.safe_load(file) or {}
 
-    series_list = data.get("series", [])
-    return [item["title"] for item in series_list if "title" in item]
+    return data.get("titles", {})
 
 
-def main() -> None:
-    titles = load_titles(DATA_FILE_PATH)
+def run_manga_update(
+    title: str,
+    data_file_path: str,
+    html_file_path: str | None = None,
+    use_network: bool = False,
+) -> OrchestrationResult:
+    try:
+        with open(data_file_path, "r", encoding="utf-8") as file:
+            data = yaml.safe_load(file) or {}
 
-    results = [
-        run_manga_update(
-            title=title,
-            data_file_path=str(DATA_FILE_PATH),
-            use_network=True,
+        series_list = data.get("series", [])
+        series = next((item for item in series_list if item.get("title") == title), None)
+
+        if series is None:
+            return OrchestrationResult(
+                title=title,
+                site=None,
+                status="failed",
+                message="Série introuvable dans le fichier de data",
+            )
+
+        work_type = series.get("type")
+        if not work_type:
+            return OrchestrationResult(
+                title=title,
+                site=None,
+                status="failed",
+                message="Le type de la série est manquant",
+            )
+
+        priority_sites = series.get("sources") or SOURCE_PRIORITY.get(work_type, [])
+        if not priority_sites:
+            return OrchestrationResult(
+                title=title,
+                site=None,
+                status="failed",
+                message=f"Aucune source définie pour le type : {work_type}",
+            )
+
+        scan_manga_overrides = load_scan_manga_overrides()
+        fetcher = HttpFetcher()
+        collected_results: list[dict] = []
+
+        for site_name in priority_sites:
+            try:
+                site_config = load_site_config(site_name)
+                adapter = build_manga_adapter(site_config)
+
+                if use_network:
+                    override_url = None
+                    if site_name == "scan-manga":
+                        override_url = scan_manga_overrides.get(title)
+
+                    if override_url:
+                        url = override_url
+                    else:
+                        url = adapter.build_url(title)
+
+                    html = fetcher.fetch_text(url)
+                else:
+                    if html_file_path is None:
+                        continue
+
+                    with open(html_file_path, "r", encoding="utf-8") as file:
+                        html = file.read()
+
+                    url = None
+
+                latest_chapter = adapter.extract_latest_chapter(html, title)
+
+                if latest_chapter:
+                    collected_results.append(
+                        {
+                            "site": site_name,
+                            "chapter": latest_chapter,
+                            "url": url,
+                        }
+                    )
+
+            except Exception as exc:
+                logger.warning("Échec source %s pour %s: %s", site_name, title, exc)
+
+        if not collected_results:
+            return OrchestrationResult(
+                title=title,
+                site=None,
+                status="failed",
+                message="Aucun résultat valide trouvé sur les sources testées",
+            )
+
+        best_result = max(
+            collected_results,
+            key=lambda item: chapter_to_decimal(item["chapter"]),
         )
-        for title in titles
-    ]
 
-    for result in results:
-        print_result(result)
+        updated = update_last_chapter(data_file_path, title, best_result["chapter"])
 
-    print_summary(results)
+        return OrchestrationResult(
+            title=title,
+            site=best_result["site"],
+            status="updated" if updated else "unchanged",
+            latest_chapter=best_result["chapter"],
+            message="Mise à jour effectuée" if updated else "Aucun changement détecté",
+            url=best_result.get("url"),
+        )
 
-
-if __name__ == "__main__":
-    main()
+    except Exception as exc:
+        return OrchestrationResult(
+            title=title,
+            site=None,
+            status="failed",
+            message=str(exc),
+        )
