@@ -1,5 +1,13 @@
 from pathlib import Path
+import sys
 import yaml
+
+# === chemins projet ===
+CURRENT_FILE = Path(__file__).resolve()
+PROJECT_ROOT = CURRENT_FILE.parents[1]
+SRC_DIR = PROJECT_ROOT / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
 
 from tracker.services.manga_orchestrator import run_manga_update
 from tracker.notifiers.discord_webhook import send_discord_notification
@@ -7,7 +15,6 @@ from tracker.notifiers.discord_webhook import send_discord_notification
 SEPARATOR = "-" * 50
 SUMMARY_SEPARATOR = "=" * 50
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_DIR = PROJECT_ROOT / "config"
 DATA_DIR = PROJECT_ROOT / "data"
 DATA_FILE_PATH = DATA_DIR / "manga" / "manga_series.yaml"
