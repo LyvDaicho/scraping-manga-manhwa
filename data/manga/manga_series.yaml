@@ -1,0 +1,75 @@
+series:
+- id: one-piece
+  title: One Piece
+  type: manga
+  last_chapter: '1181'
+  last_update: '2026-05-07'
+  status: en_cours
+- id: sakamoto-days
+  title: Sakamoto Days
+  type: manga
+  last_chapter: '257'
+  last_update: '2026-05-07'
+  status: en_cours
+- id: blue-lock
+  title: Blue Lock
+  type: manga
+  last_chapter: '345'
+  last_update: '2026-05-07'
+  status: en_cours
+  sources:
+  - fmteam
+- id: boruto-two-blue-vortex
+  title: Boruto Two Blue Vortex
+  type: manga
+  last_chapter: '33'
+  last_update: '2026-05-07'
+  status: en_cours
+- id: dandadan
+  title: Dandadan
+  type: manga
+  last_chapter: '232'
+  last_update: '2026-05-07'
+  status: en_cours
+- id: yomi-no-tsugai
+  title: Yomi No Tsugai
+  type: manga
+  last_chapter: '21'
+  last_update: '2026-05-07'
+  status: en_cours
+- id: the-beginning-after-the-end
+  title: The Beginning After the End
+  type: manhwa
+  last_chapter: '233'
+  last_update: '2026-05-07'
+  status: en_cours
+- id: eleceed
+  title: Eleceed
+  type: manhwa
+  last_chapter: '391'
+  last_update: '2026-05-07'
+  status: en_cours
+- id: centuria
+  title: Centuria
+  type: manga
+  last_chapter: '89'
+  last_update: '2026-05-07'
+  status: en_cours
+- id: gachiakuta
+  title: Gachiakuta
+  type: manga
+  last_chapter: '166'
+  last_update: '2026-05-07'
+  status: en_cours
+- id: ichi the witch
+  title: Ichi the Witch
+  type: manga
+  last_chapter: '80'
+  last_update: '2026-05-07'
+  status: en_cours
+- id: kagurabachi
+  title: Kagurabachi
+  type: manga
+  last_chapter: '120'
+  last_update: '2026-05-07'
+  status: en_cours

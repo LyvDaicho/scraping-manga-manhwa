@@ -1,0 +1,6 @@
+name: lelmanga
+supported_categories:
+  - manga
+  - manwha
+chapter_selector: ".inepcx a"
+domain: www.lelmanga.com

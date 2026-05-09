@@ -1,0 +1,6 @@
+name: fmteam
+supported_categories:
+  - manga
+  - manwha
+chapter_selector: ".item span.chapter a.filter[href*='/ch/']"
+domain: fmteam.fr
