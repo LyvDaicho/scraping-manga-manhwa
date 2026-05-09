@@ -9,8 +9,14 @@ SEPARATOR = "-" * 50
 SUMMARY_SEPARATOR = "=" * 50
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_FILE_PATH = PROJECT_ROOT / "data" / "manga" / "manga_series.yaml"
+CONFIG_DIR = PROJECT_ROOT / "config"
+
+lelmanga_cfg = CONFIG_DIR / "sites" / "manga" / "lelmanga.yaml"
+scan_manga_cfg = CONFIG_DIR / "sites" / "scans" / "scan-manga.yaml"
+fmteam_cfg = CONFIG_DIR / "sites" / "manga" / "fmteam.yaml"
+raijin_cfg = CONFIG_DIR / "sites" / "manhwa" / "raijin.yaml"
 
 
 def safe(value) -> str:
